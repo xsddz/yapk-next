@@ -1,3 +1,4 @@
+pub mod crypto;
 pub mod db;
 pub mod models;
 
@@ -5,22 +6,34 @@ use std::path::PathBuf;
 use std::sync::OnceLock;
 use tauri::Manager;
 
+use crypto::MasterPassword;
 use db::Database;
 use models::PasswordRecord;
 
 /// Global database instance
 static DATABASE: OnceLock<Database> = OnceLock::new();
+/// Global master password instance
+static MASTER_PASSWORD: OnceLock<MasterPassword> = OnceLock::new();
 
 /// Get database instance
 fn get_db() -> &'static Database {
     DATABASE.get().expect("Database not initialized")
 }
 
+/// Get master password instance
+fn get_master_password() -> &'static MasterPassword {
+    MASTER_PASSWORD.get().expect("MasterPassword not initialized")
+}
+
 /// Initialize the database
 fn init_database(app_data_dir: PathBuf) -> Result<(), String> {
-    let db_path = app_data_dir.join("passwords.db");
+    let db_path = app_data_dir.clone().join("passwords.db");
     let db = Database::new(db_path).map_err(|e| e.to_string())?;
     DATABASE.set(db).map_err(|_| "Database already initialized".to_string())?;
+    
+    let mp = MasterPassword::new(app_data_dir);
+    MASTER_PASSWORD.set(mp).map_err(|_| "MasterPassword already initialized".to_string())?;
+    
     Ok(())
 }
 
@@ -56,6 +69,32 @@ fn delete_record(id: i64) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
+// ============ 主密码相关命令 ============
+
+/// 检查是否已设置主密码
+#[tauri::command]
+fn is_master_password_set() -> bool {
+    get_master_password().is_set()
+}
+
+/// 设置主密码（首次使用）
+#[tauri::command]
+fn set_master_password(password: String) -> Result<(), String> {
+    get_master_password().set(&password)
+}
+
+/// 验证主密码
+#[tauri::command]
+fn verify_master_password(password: String) -> Result<bool, String> {
+    get_master_password().verify(&password)
+}
+
+/// 修改主密码
+#[tauri::command]
+fn change_master_password(old_password: String, new_password: String) -> Result<(), String> {
+    get_master_password().change(&old_password, &new_password)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -78,6 +117,10 @@ pub fn run() {
             add_record,
             update_record,
             delete_record,
+            is_master_password_set,
+            set_master_password,
+            verify_master_password,
+            change_master_password,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

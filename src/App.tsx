@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import Sidebar from './components/Sidebar'
 import PasswordDetail from './components/PasswordDetail'
+import LockScreen from './components/LockScreen'
 import { usePasswordStore } from './stores/passwordStore'
 import type { PasswordRecord } from './types'
 
@@ -11,17 +12,40 @@ function App() {
     selectedRecord, 
     searchText,
     isAddMode,
+    isLocked,
     setRecords, 
     setSelectedRecord,
     setSearchText,
-    setAddMode
+    setAddMode,
+    setLocked
   } = usePasswordStore()
 
-  // Load password records on mount
+  const [isFirstTime, setIsFirstTime] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Check master password status on mount
   useEffect(() => {
-    loadRecords('')
+    checkMasterPassword()
   }, [])
 
+  const checkMasterPassword = async () => {
+    try {
+      const isSet = await invoke<boolean>('is_master_password_set')
+      setIsFirstTime(!isSet)
+      setLocked(true)
+    } catch (error) {
+      console.error('Failed to check master password:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleUnlock = () => {
+    setLocked(false)
+    loadRecords('')
+  }
+
+  // Load password records
   const loadRecords = async (search: string) => {
     try {
       const result = await invoke<PasswordRecord[]>('list_records', { search })
@@ -89,6 +113,21 @@ function App() {
     setSelectedRecord(null)
   }
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+      </div>
+    )
+  }
+
+  // Lock screen
+  if (isLocked) {
+    return <LockScreen isFirstTime={isFirstTime} onUnlock={handleUnlock} />
+  }
+
+  // Main app
   return (
     <div className="flex h-screen bg-gray-900 text-gray-100">
       <Sidebar

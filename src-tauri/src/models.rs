@@ -10,6 +10,7 @@ pub struct PasswordRecord {
     pub login_name: String,
     pub login_pass: String,
     pub remarks: String,
+    pub category_id: Option<i64>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -23,4 +24,16 @@ pub struct NewPasswordRecord {
     pub login_name: String,
     pub login_pass: String,
     pub remarks: String,
+    pub category_id: Option<i64>,
+}
+
+/// Category structure
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Category {
+    pub id: i64,
+    pub name: String,
+    pub icon: String,
+    pub color: String,
+    pub created_at: String,
 }

@@ -4,8 +4,9 @@ import Sidebar from './components/Sidebar'
 import PasswordDetail from './components/PasswordDetail'
 import LockScreen from './components/LockScreen'
 import { PasswordHealth } from './components/PasswordHealth'
+import { CategoryManager } from './components/CategoryManager'
 import { usePasswordStore } from './stores/passwordStore'
-import type { PasswordRecord } from './types'
+import type { PasswordRecord, Category } from './types'
 
 function App() {
   const { 
@@ -24,6 +25,9 @@ function App() {
   const [isFirstTime, setIsFirstTime] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [showHealthCheck, setShowHealthCheck] = useState(false)
+  const [showCategoryManager, setShowCategoryManager] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null | 'all'>('all')
 
   // Check master password status on mount
   useEffect(() => {
@@ -45,6 +49,17 @@ function App() {
   const handleUnlock = () => {
     setLocked(false)
     loadRecords('')
+    loadCategories()
+  }
+
+  // Load categories
+  const loadCategories = async () => {
+    try {
+      const result = await invoke<Category[]>('list_categories')
+      setCategories(result)
+    } catch (error) {
+      console.error('Failed to load categories:', error)
+    }
   }
 
   // Load password records
@@ -72,6 +87,7 @@ function App() {
         loginName: '',
         loginPass: '',
         remarks: '',
+        categoryId: selectedCategoryId === 'all' ? null : selectedCategoryId,
         createdAt: '',
         updatedAt: ''
       })
@@ -134,6 +150,8 @@ function App() {
     <div className="flex h-screen bg-gray-900 text-gray-100">
       <Sidebar
         records={records}
+        categories={categories}
+        selectedCategoryId={selectedCategoryId}
         searchText={searchText}
         onSearch={handleSearch}
         onAddClick={handleAddClick}
@@ -141,10 +159,13 @@ function App() {
         selectedId={selectedRecord?.id}
         onSelectRecord={handleSelectRecord}
         onHealthCheck={() => setShowHealthCheck(true)}
+        onCategorySelect={setSelectedCategoryId}
+        onManageCategories={() => setShowCategoryManager(true)}
       />
       <main className="flex-1 overflow-hidden">
         <PasswordDetail
           record={selectedRecord}
+          categories={categories}
           onSave={handleSave}
           onDelete={handleDelete}
           onCancel={handleCancel}
@@ -163,6 +184,13 @@ function App() {
               setShowHealthCheck(false)
             }
           }}
+        />
+      )}
+      {/* Category Manager Modal */}
+      {showCategoryManager && (
+        <CategoryManager
+          onClose={() => setShowCategoryManager(false)}
+          onCategoriesChange={loadCategories}
         />
       )}
     </div>

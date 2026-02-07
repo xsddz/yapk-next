@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import PasswordGenerator from './PasswordGenerator'
-import type { PasswordRecord } from '../types'
+import type { PasswordRecord, Category } from '../types'
 
 interface PasswordDetailProps {
   record: PasswordRecord | null
+  categories: Category[]
   onSave: (record: PasswordRecord) => void
   onDelete: (id: number) => void
   onCancel: () => void
@@ -12,6 +13,7 @@ interface PasswordDetailProps {
 
 export default function PasswordDetail({
   record,
+  categories,
   onSave,
   onDelete,
   onCancel,
@@ -49,7 +51,7 @@ export default function PasswordDetail({
     )
   }
 
-  const handleChange = (field: keyof PasswordRecord, value: string) => {
+  const handleChange = (field: keyof PasswordRecord, value: string | number | null) => {
     setFormData({ ...formData, [field]: value })
   }
 
@@ -203,6 +205,25 @@ export default function PasswordDetail({
         </div>
 
         {/* Remarks */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+            分类
+          </label>
+          <select
+            value={formData.categoryId ?? ''}
+            onChange={(e) => handleChange('categoryId', e.target.value ? Number(e.target.value) : null)}
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          >
+            <option value="">未分类</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.icon} {cat.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Notes */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1.5">
             备注

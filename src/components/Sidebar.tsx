@@ -1,7 +1,9 @@
-import type { PasswordRecord } from '../types'
+import type { PasswordRecord, Category } from '../types'
 
 interface SidebarProps {
   records: PasswordRecord[]
+  categories: Category[]
+  selectedCategoryId: number | null | 'all'
   searchText: string
   onSearch: (text: string) => void
   onAddClick: () => void
@@ -9,10 +11,14 @@ interface SidebarProps {
   selectedId?: number
   onSelectRecord: (record: PasswordRecord) => void
   onHealthCheck?: () => void
+  onCategorySelect: (categoryId: number | null | 'all') => void
+  onManageCategories: () => void
 }
 
 export default function Sidebar({
   records,
+  categories,
+  selectedCategoryId,
   searchText,
   onSearch,
   onAddClick,
@@ -20,8 +26,22 @@ export default function Sidebar({
   selectedId,
   onSelectRecord,
   onHealthCheck,
+  onCategorySelect,
+  onManageCategories,
 }: SidebarProps) {
-  const generateAvatar = (title: string) => {
+  // Filter records by selected category
+  const filteredRecords = selectedCategoryId === 'all' 
+    ? records 
+    : records.filter(r => r.categoryId === selectedCategoryId)
+
+  const generateAvatar = (title: string, category?: Category) => {
+    if (category) {
+      return {
+        letter: category.icon,
+        colorClass: '',
+        bgColor: category.color + '33',
+      }
+    }
     const colors = [
       'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 
       'bg-purple-500', 'bg-pink-500', 'bg-indigo-500'
@@ -29,7 +49,8 @@ export default function Sidebar({
     const colorIndex = title.charCodeAt(0) % colors.length
     return {
       letter: title.charAt(0).toUpperCase(),
-      colorClass: colors[colorIndex]
+      colorClass: colors[colorIndex],
+      bgColor: undefined,
     }
   }
 
@@ -109,15 +130,65 @@ export default function Sidebar({
         </div>
       </header>
 
+      {/* Category Filter */}
+      <div className="p-2 border-b border-gray-700">
+        <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
+          <button
+            onClick={() => onCategorySelect('all')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+              selectedCategoryId === 'all'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            全部
+          </button>
+          <button
+            onClick={() => onCategorySelect(null)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+              selectedCategoryId === null
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            未分类
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => onCategorySelect(cat.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1 ${
+                selectedCategoryId === cat.id
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              <span>{cat.icon}</span>
+              {cat.name}
+            </button>
+          ))}
+          <button
+            onClick={onManageCategories}
+            className="px-2 py-1.5 rounded-lg text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700 transition-colors"
+            title="管理分类"
+          >
+            ⚙️
+          </button>
+        </div>
+      </div>
+
       {/* Password List */}
       <ul className="flex-1 overflow-y-auto">
-        {records.length === 0 ? (
+        {filteredRecords.length === 0 ? (
           <li className="p-8 text-center text-gray-500">
             {searchText ? '没有找到匹配的记录' : '暂无密码记录'}
           </li>
         ) : (
-          records.map((record) => {
-            const avatar = generateAvatar(record.title)
+          filteredRecords.map((record) => {
+            const category = record.categoryId 
+              ? categories.find(c => c.id === record.categoryId) 
+              : undefined
+            const avatar = generateAvatar(record.title, category)
             const isSelected = selectedId === record.id
             
             return (
@@ -130,7 +201,10 @@ export default function Sidebar({
                     : 'hover:bg-gray-700/50'
                 }`}
               >
-                <div className={`w-10 h-10 rounded-full ${avatar.colorClass} flex items-center justify-center text-white font-medium`}>
+                <div 
+                  className={`w-10 h-10 rounded-full ${avatar.colorClass} flex items-center justify-center text-white font-medium`}
+                  style={avatar.bgColor ? { backgroundColor: avatar.bgColor } : undefined}
+                >
                   {avatar.letter}
                 </div>
                 <div className="flex-1 min-w-0">

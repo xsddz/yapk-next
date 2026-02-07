@@ -11,7 +11,7 @@ use crypto::{
     check_password_strength, find_reused_passwords, HealthReport, PasswordHealthResult, PasswordIssue,
 };
 use db::Database;
-use models::PasswordRecord;
+use models::{PasswordRecord, Category};
 
 /// Global database instance
 static DATABASE: OnceLock<Database> = OnceLock::new();
@@ -262,6 +262,61 @@ fn check_passwords_health() -> Result<HealthReport, String> {
     })
 }
 
+// ============ 分类管理 ============
+
+/// 获取所有分类
+#[tauri::command]
+fn list_categories() -> Result<Vec<Category>, String> {
+    get_db()
+        .list_categories()
+        .map_err(|e| e.to_string())
+}
+
+/// 添加分类
+#[tauri::command]
+fn add_category(name: String, icon: String, color: String) -> Result<i64, String> {
+    get_db()
+        .add_category(&name, &icon, &color)
+        .map_err(|e| e.to_string())
+}
+
+/// 更新分类
+#[tauri::command]
+fn update_category(id: i64, name: String, icon: String, color: String) -> Result<(), String> {
+    get_db()
+        .update_category(id, &name, &icon, &color)
+        .map_err(|e| e.to_string())
+}
+
+/// 删除分类
+#[tauri::command]
+fn delete_category(id: i64) -> Result<(), String> {
+    get_db()
+        .delete_category(id)
+        .map_err(|e| e.to_string())
+}
+
+/// 获取分类密码数量统计
+#[tauri::command]
+fn get_category_counts() -> Result<Vec<(Option<i64>, i64)>, String> {
+    get_db()
+        .get_category_counts()
+        .map_err(|e| e.to_string())
+}
+
+/// 按分类筛选记录
+#[tauri::command]
+fn list_records_by_category(category_id: Option<i64>) -> Result<Vec<PasswordRecord>, String> {
+    let records = get_db()
+        .list_records_by_category(category_id)
+        .map_err(|e| e.to_string())?;
+    
+    // Decrypt each record's password
+    records.into_iter()
+        .map(decrypt_record)
+        .collect()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -291,6 +346,12 @@ pub fn run() {
             lock_app,
             generate_random_password,
             check_passwords_health,
+            list_categories,
+            add_category,
+            update_category,
+            delete_category,
+            get_category_counts,
+            list_records_by_category,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

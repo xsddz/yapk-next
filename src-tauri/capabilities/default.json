@@ -4,8 +4,8 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
-    "clipboard-manager:allow-write",
-    "clipboard-manager:allow-read",
-    "fs:allow-app-read-write"
+    "clipboard-manager:allow-write-text",
+    "clipboard-manager:allow-read-text",
+    "fs:default"
   ]
 }

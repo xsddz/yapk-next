@@ -6,7 +6,10 @@ use std::path::PathBuf;
 use std::sync::{OnceLock, RwLock};
 use tauri::Manager;
 
-use crypto::{MasterPassword, encrypt_string, decrypt_string, generate_password, PasswordGeneratorOptions};
+use crypto::{
+    MasterPassword, encrypt_string, decrypt_string, generate_password, PasswordGeneratorOptions,
+    check_password_strength, find_reused_passwords, HealthReport, PasswordHealthResult, PasswordIssue,
+};
 use db::Database;
 use models::PasswordRecord;
 
@@ -199,6 +202,66 @@ fn generate_random_password(options: PasswordGeneratorOptions) -> Result<String,
     generate_password(&options)
 }
 
+// ============ 密码健康检查 ============
+
+/// 检查所有密码的健康状态
+#[tauri::command]
+fn check_passwords_health() -> Result<HealthReport, String> {
+    let key = get_encryption_key()?;
+    
+    // 获取所有记录
+    let records = get_db().list_records("").map_err(|e| e.to_string())?;
+    
+    // 解密所有密码
+    let passwords: Vec<(i64, String)> = records
+        .iter()
+        .map(|r| {
+            let decrypted = decrypt_string(&r.login_pass, &key).unwrap_or_default();
+            (r.id, decrypted)
+        })
+        .collect();
+    
+    // 检测重复密码
+    let reused_map = find_reused_passwords(&passwords);
+    
+    // 计算重复密码组数 (每组只算一次)
+    let reused_count = reused_map.len() / 2;
+    
+    // 检查每个密码的健康状态
+    let mut results = Vec::new();
+    let mut weak_count = 0;
+    
+    for (id, password) in &passwords {
+        let (strength, score, mut issues) = check_password_strength(password);
+        
+        // 添加重复密码问题
+        if let Some(duplicate_ids) = reused_map.get(id) {
+            issues.push(PasswordIssue {
+                issue_type: "reused".to_string(),
+                message: format!("此密码与其他 {} 个账户重复", duplicate_ids.len()),
+            });
+        }
+        
+        if strength == crypto::PasswordStrength::Weak {
+            weak_count += 1;
+        }
+        
+        results.push(PasswordHealthResult {
+            record_id: *id,
+            strength,
+            score,
+            issues,
+        });
+    }
+    
+    Ok(HealthReport {
+        total_count: records.len(),
+        weak_count,
+        reused_count,
+        results,
+    })
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -227,6 +290,7 @@ pub fn run() {
             change_master_password,
             lock_app,
             generate_random_password,
+            check_passwords_health,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core'
 import Sidebar from './components/Sidebar'
 import PasswordDetail from './components/PasswordDetail'
 import LockScreen from './components/LockScreen'
+import { PasswordHealth } from './components/PasswordHealth'
 import { usePasswordStore } from './stores/passwordStore'
 import type { PasswordRecord } from './types'
 
@@ -22,6 +23,7 @@ function App() {
 
   const [isFirstTime, setIsFirstTime] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [showHealthCheck, setShowHealthCheck] = useState(false)
 
   // Check master password status on mount
   useEffect(() => {
@@ -138,6 +140,7 @@ function App() {
         isAddMode={isAddMode}
         selectedId={selectedRecord?.id}
         onSelectRecord={handleSelectRecord}
+        onHealthCheck={() => setShowHealthCheck(true)}
       />
       <main className="flex-1 overflow-hidden">
         <PasswordDetail
@@ -147,6 +150,21 @@ function App() {
           onCancel={handleCancel}
         />
       </main>
+
+      {/* Password Health Check Modal */}
+      {showHealthCheck && (
+        <PasswordHealth
+          records={records.map(r => ({ id: r.id, name: r.title }))}
+          onClose={() => setShowHealthCheck(false)}
+          onSelectRecord={(id) => {
+            const record = records.find(r => r.id === id)
+            if (record) {
+              handleSelectRecord(record)
+              setShowHealthCheck(false)
+            }
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -270,6 +270,158 @@ pub fn generate_password(options: &PasswordGeneratorOptions) -> Result<String, S
     Ok(password)
 }
 
+// ============ 密码健康检查 ============
+
+/// 密码强度级别
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum PasswordStrength {
+    Weak,
+    Fair,
+    Good,
+    Strong,
+}
+
+/// 密码健康问题
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PasswordIssue {
+    /// 问题类型: "weak" | "reused" | "short"
+    pub issue_type: String,
+    /// 问题描述
+    pub message: String,
+}
+
+/// 单个密码的健康结果
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PasswordHealthResult {
+    /// 记录 ID
+    pub record_id: i64,
+    /// 密码强度
+    pub strength: PasswordStrength,
+    /// 强度分数 (0-100)
+    pub score: u32,
+    /// 发现的问题列表
+    pub issues: Vec<PasswordIssue>,
+}
+
+/// 整体健康报告
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HealthReport {
+    /// 总记录数
+    pub total_count: usize,
+    /// 弱密码数
+    pub weak_count: usize,
+    /// 重复密码数
+    pub reused_count: usize,
+    /// 各记录的健康结果
+    pub results: Vec<PasswordHealthResult>,
+}
+
+/// 检查单个密码强度
+pub fn check_password_strength(password: &str) -> (PasswordStrength, u32, Vec<PasswordIssue>) {
+    let mut score: u32 = 0;
+    let mut issues = Vec::new();
+    
+    let len = password.len();
+    
+    // 长度评分 (最高 30 分)
+    if len >= 16 {
+        score += 30;
+    } else if len >= 12 {
+        score += 25;
+    } else if len >= 8 {
+        score += 15;
+    } else {
+        issues.push(PasswordIssue {
+            issue_type: "short".to_string(),
+            message: format!("密码长度只有 {} 位，建议至少 8 位", len),
+        });
+        score += len as u32 * 2;
+    }
+    
+    // 字符多样性评分 (最高 40 分)
+    let has_lower = password.chars().any(|c| c.is_ascii_lowercase());
+    let has_upper = password.chars().any(|c| c.is_ascii_uppercase());
+    let has_digit = password.chars().any(|c| c.is_ascii_digit());
+    let has_symbol = password.chars().any(|c| !c.is_alphanumeric());
+    
+    let mut char_types = 0;
+    if has_lower { char_types += 1; score += 10; }
+    if has_upper { char_types += 1; score += 10; }
+    if has_digit { char_types += 1; score += 10; }
+    if has_symbol { char_types += 1; score += 10; }
+    
+    if char_types < 3 {
+        issues.push(PasswordIssue {
+            issue_type: "weak".to_string(),
+            message: "密码缺少多样性，建议包含大小写字母、数字和特殊符号".to_string(),
+        });
+    }
+    
+    // 熵值评分 (最高 30 分)
+    let unique_chars: std::collections::HashSet<char> = password.chars().collect();
+    let uniqueness = unique_chars.len() as f32 / len.max(1) as f32;
+    score += (uniqueness * 30.0) as u32;
+    
+    // 常见弱密码检测
+    let weak_patterns = [
+        "password", "123456", "qwerty", "abc123", "admin", "letmein",
+        "welcome", "monkey", "dragon", "master", "111111", "000000",
+    ];
+    let lower_password = password.to_lowercase();
+    if weak_patterns.iter().any(|p| lower_password.contains(p)) {
+        score = score.saturating_sub(30);
+        issues.push(PasswordIssue {
+            issue_type: "weak".to_string(),
+            message: "密码包含常见弱密码模式".to_string(),
+        });
+    }
+    
+    // 确定强度级别
+    let strength = if score >= 80 {
+        PasswordStrength::Strong
+    } else if score >= 60 {
+        PasswordStrength::Good
+    } else if score >= 40 {
+        PasswordStrength::Fair
+    } else {
+        PasswordStrength::Weak
+    };
+    
+    (strength, score.min(100), issues)
+}
+
+/// 检查密码重复
+pub fn find_reused_passwords(passwords: &[(i64, String)]) -> std::collections::HashMap<i64, Vec<i64>> {
+    use std::collections::HashMap;
+    
+    // password -> record_ids
+    let mut password_map: HashMap<&str, Vec<i64>> = HashMap::new();
+    
+    for (id, password) in passwords {
+        if !password.is_empty() {
+            password_map.entry(password.as_str()).or_default().push(*id);
+        }
+    }
+    
+    // 返回：record_id -> 与之重复的其他 record_ids
+    let mut result: HashMap<i64, Vec<i64>> = HashMap::new();
+    
+    for ids in password_map.values() {
+        if ids.len() > 1 {
+            for id in ids {
+                let others: Vec<i64> = ids.iter().filter(|&i| i != id).copied().collect();
+                result.insert(*id, others);
+            }
+        }
+    }
+    
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

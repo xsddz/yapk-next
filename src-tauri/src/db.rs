@@ -53,51 +53,43 @@ impl Database {
     /// List all password records, optionally filtered by search term
     pub fn list_records(&self, search: &str) -> SqliteResult<Vec<PasswordRecord>> {
         let conn = self.conn.lock().unwrap();
-        let mut stmt = if search.is_empty() {
-            conn.prepare(
-                "SELECT id, title, site_or_app, login_name, login_pass, remarks, created_at, updated_at 
-                 FROM passwords ORDER BY updated_at DESC"
-            )?
-        } else {
-            conn.prepare(
-                "SELECT id, title, site_or_app, login_name, login_pass, remarks, created_at, updated_at 
-                 FROM passwords WHERE title LIKE ?1 ORDER BY updated_at DESC"
-            )?
-        };
-
-        let rows = if search.is_empty() {
-            stmt.query_map([], |row| {
-                Ok(PasswordRecord {
-                    id: row.get(0)?,
-                    title: row.get(1)?,
-                    site_or_app: row.get(2)?,
-                    login_name: row.get(3)?,
-                    login_pass: row.get(4)?,
-                    remarks: row.get(5)?,
-                    created_at: row.get(6)?,
-                    updated_at: row.get(7)?,
-                })
-            })?
-        } else {
-            let pattern = format!("%{}%", search);
-            stmt.query_map([pattern], |row| {
-                Ok(PasswordRecord {
-                    id: row.get(0)?,
-                    title: row.get(1)?,
-                    site_or_app: row.get(2)?,
-                    login_name: row.get(3)?,
-                    login_pass: row.get(4)?,
-                    remarks: row.get(5)?,
-                    created_at: row.get(6)?,
-                    updated_at: row.get(7)?,
-                })
-            })?
+        
+        let map_row = |row: &rusqlite::Row| -> rusqlite::Result<PasswordRecord> {
+            Ok(PasswordRecord {
+                id: row.get(0)?,
+                title: row.get(1)?,
+                site_or_app: row.get(2)?,
+                login_name: row.get(3)?,
+                login_pass: row.get(4)?,
+                remarks: row.get(5)?,
+                created_at: row.get(6)?,
+                updated_at: row.get(7)?,
+            })
         };
 
         let mut records = Vec::new();
-        for row in rows {
-            records.push(row?);
+        
+        if search.is_empty() {
+            let mut stmt = conn.prepare(
+                "SELECT id, title, site_or_app, login_name, login_pass, remarks, created_at, updated_at 
+                 FROM passwords ORDER BY updated_at DESC"
+            )?;
+            let rows = stmt.query_map([], map_row)?;
+            for row in rows {
+                records.push(row?);
+            }
+        } else {
+            let mut stmt = conn.prepare(
+                "SELECT id, title, site_or_app, login_name, login_pass, remarks, created_at, updated_at 
+                 FROM passwords WHERE title LIKE ?1 ORDER BY updated_at DESC"
+            )?;
+            let pattern = format!("%{}%", search);
+            let rows = stmt.query_map([pattern], map_row)?;
+            for row in rows {
+                records.push(row?);
+            }
         }
+
         Ok(records)
     }
 

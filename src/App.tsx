@@ -6,7 +6,9 @@ import LockScreen from './components/LockScreen'
 import { PasswordHealth } from './components/PasswordHealth'
 import { CategoryManager } from './components/CategoryManager'
 import { DataTransfer } from './components/DataTransfer'
+import { Settings } from './components/Settings'
 import { usePasswordStore } from './stores/passwordStore'
+import { useThemeStore, applyTheme } from './stores/themeStore'
 import type { PasswordRecord, Category } from './types'
 
 function App() {
@@ -28,8 +30,16 @@ function App() {
   const [showHealthCheck, setShowHealthCheck] = useState(false)
   const [showCategoryManager, setShowCategoryManager] = useState(false)
   const [showDataTransfer, setShowDataTransfer] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null | 'all'>('all')
+
+  const { mode } = useThemeStore()
+
+  // Apply theme on mount
+  useEffect(() => {
+    applyTheme(mode)
+  }, [mode])
 
   // Check master password status on mount
   useEffect(() => {
@@ -149,7 +159,7 @@ function App() {
 
   // Main app
   return (
-    <div className="flex h-screen bg-gray-900 text-gray-100">
+    <div className="flex h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <Sidebar
         records={records}
         categories={categories}
@@ -164,6 +174,7 @@ function App() {
         onCategorySelect={setSelectedCategoryId}
         onManageCategories={() => setShowCategoryManager(true)}
         onDataTransfer={() => setShowDataTransfer(true)}
+        onSettings={() => setShowSettings(true)}
       />
       <main className="flex-1 overflow-hidden">
         <PasswordDetail
@@ -205,6 +216,10 @@ function App() {
             loadCategories()
           }}
         />
+      )}
+      {/* Settings Modal */}
+      {showSettings && (
+        <Settings onClose={() => setShowSettings(false)} />
       )}
     </div>
   )

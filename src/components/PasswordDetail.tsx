@@ -30,10 +30,10 @@ export default function PasswordDetail({
 
   if (!formData) {
     return (
-      <div className="h-full flex items-center justify-center text-gray-500">
+      <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
         <div className="text-center">
           <svg 
-            className="w-16 h-16 mx-auto mb-4 text-gray-600" 
+            className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" 
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"
@@ -75,7 +75,7 @@ export default function PasswordDetail({
   const isNewRecord = formData.id === 0
 
   return (
-    <div className="h-full overflow-y-auto p-6">
+    <div className="h-full overflow-y-auto p-6 bg-white dark:bg-gray-900">
       <form onSubmit={handleSubmit} className="max-w-lg mx-auto space-y-5">
         <h2 className="text-xl font-semibold mb-6">
           {isNewRecord ? '添加新密码' : '编辑密码'}
@@ -83,14 +83,14 @@ export default function PasswordDetail({
 
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1.5">
             标题
           </label>
           <input
             type="text"
             value={formData.title}
             onChange={(e) => handleChange('title', e.target.value)}
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             placeholder="例如：GitHub"
             required
           />
@@ -98,21 +98,21 @@ export default function PasswordDetail({
 
         {/* Site or App */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1.5">
             网址或应用
           </label>
           <input
             type="text"
             value={formData.siteOrApp}
             onChange={(e) => handleChange('siteOrApp', e.target.value)}
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             placeholder="例如：github.com"
           />
         </div>
 
         {/* Login Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1.5">
             登录账号
           </label>
           <div className="relative">
@@ -120,13 +120,13 @@ export default function PasswordDetail({
               type="text"
               value={formData.loginName}
               onChange={(e) => handleChange('loginName', e.target.value)}
-              className="w-full px-3 py-2 pr-10 bg-gray-800 border border-gray-600 rounded-lg text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className="w-full px-3 py-2 pr-10 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               placeholder="用户名或邮箱"
             />
             <button
               type="button"
               onClick={() => handleCopy(formData.loginName, 'loginName')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-200 transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
               title="复制"
             >
               {copyFeedback === 'loginName' ? (
@@ -144,7 +144,7 @@ export default function PasswordDetail({
 
         {/* Login Password */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1.5">
             登录密码
           </label>
           <div className="relative">
@@ -152,7 +152,7 @@ export default function PasswordDetail({
               type={showPassword ? 'text' : 'password'}
               value={formData.loginPass}
               onChange={(e) => handleChange('loginPass', e.target.value)}
-              className="w-full px-3 py-2 pr-28 bg-gray-800 border border-gray-600 rounded-lg text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className="w-full px-3 py-2 pr-28 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               placeholder="密码"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
@@ -170,7 +170,7 @@ export default function PasswordDetail({
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="p-1.5 text-gray-400 hover:text-gray-200 transition-colors"
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                 title={showPassword ? '隐藏密码' : '显示密码'}
               >
                 {showPassword ? (
@@ -187,7 +187,7 @@ export default function PasswordDetail({
               <button
                 type="button"
                 onClick={() => handleCopy(formData.loginPass, 'loginPass')}
-                className="p-1.5 text-gray-400 hover:text-gray-200 transition-colors"
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                 title="复制"
               >
                 {copyFeedback === 'loginPass' ? (
@@ -206,13 +206,13 @@ export default function PasswordDetail({
 
         {/* Remarks */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1.5">
             分类
           </label>
           <select
             value={formData.categoryId ?? ''}
             onChange={(e) => handleChange('categoryId', e.target.value ? Number(e.target.value) : null)}
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           >
             <option value="">未分类</option>
             {categories.map((cat) => (
@@ -225,14 +225,14 @@ export default function PasswordDetail({
 
         {/* Notes */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1.5">
             备注
           </label>
           <textarea
             value={formData.remarks}
             onChange={(e) => handleChange('remarks', e.target.value)}
             rows={3}
-            className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-gray-100 resize-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 resize-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             placeholder="其他信息..."
           />
         </div>
@@ -248,7 +248,7 @@ export default function PasswordDetail({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors font-medium"
+            className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
           >
             取消
           </button>

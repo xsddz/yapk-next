@@ -1,15 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <!-- Background rounded rectangle -->
-  <rect x="100" y="100" width="824" height="824" rx="150" fill="#1e40af"/>
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a8b88c"/>
+      <stop offset="100%" style="stop-color:#8fa574"/>
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a5240"/>
+      <stop offset="100%" style="stop-color:#3a4230"/>
+    </linearGradient>
+  </defs>
   
-  <!-- Lock body -->
-  <rect x="320" y="400" width="384" height="300" rx="30" fill="white"/>
+  <!-- 圆角背景 -->
+  <rect x="0" y="0" width="1024" height="1024" rx="180" ry="180" fill="url(#bgGrad)"/>
   
-  <!-- Lock shackle -->
-  <path d="M390 400 L390 300 Q390 200 512 200 Q634 200 634 300 L634 400" 
-        fill="none" stroke="white" stroke-width="40" stroke-linecap="round"/>
+  <!-- 盾牌形状 -->
+  <path 
+    d="M512 140
+       C512 140 280 200 280 200
+       L280 480
+       C280 680 512 884 512 884
+       C512 884 744 680 744 680
+       L744 480
+       L744 200
+       C744 200 512 140 512 140Z"
+    fill="url(#shieldGrad)"
+    stroke="#2d3326"
+    stroke-width="8"
+  />
   
-  <!-- Keyhole -->
-  <circle cx="512" cy="510" r="45" fill="#1e40af"/>
-  <polygon points="490,540 534,540 512,640" fill="#1e40af"/>
+  <!-- Y 字母 (路径版本) -->
+  <path
+    d="M350 280 L350 280 L440 280 L512 400 L584 280 L674 280 L560 470 L560 620 L464 620 L464 470 Z"
+    fill="#a8b88c"
+  />
+  
+  <!-- 钥匙孔装饰 -->
+  <circle cx="512" cy="700" r="28" fill="#a8b88c"/>
+  <rect x="498" y="700" width="28" height="70" rx="6" fill="#a8b88c"/>
 </svg>

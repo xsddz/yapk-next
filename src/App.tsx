@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { invoke } from '@tauri-apps/api/core'
-import Sidebar from './components/Sidebar'
+import Toolbar from './components/Toolbar'
+import PasswordList from './components/PasswordList'
+import type { PasswordListRef } from './components/PasswordList'
 import PasswordDetail from './components/PasswordDetail'
 import LockScreen from './components/LockScreen'
 import { PasswordHealth } from './components/PasswordHealth'
@@ -10,6 +12,8 @@ import { Settings } from './components/Settings'
 import { usePasswordStore } from './stores/passwordStore'
 import { useThemeStore, applyTheme } from './stores/themeStore'
 import type { PasswordRecord, Category } from './types'
+
+type ViewMode = 'list' | 'detail'
 
 function App() {
   const { 
@@ -27,12 +31,15 @@ function App() {
 
   const [isFirstTime, setIsFirstTime] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [showHealthCheck, setShowHealthCheck] = useState(false)
   const [showCategoryManager, setShowCategoryManager] = useState(false)
   const [showDataTransfer, setShowDataTransfer] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null | 'all'>('all')
+
+  const passwordListRef = useRef<PasswordListRef>(null)
 
   const { mode } = useThemeStore()
 
@@ -90,8 +97,14 @@ function App() {
   }
 
   const handleAddClick = () => {
-    setAddMode(!isAddMode)
-    if (!isAddMode) {
+    if (isAddMode && viewMode === 'detail') {
+      // Cancel add mode
+      setAddMode(false)
+      setSelectedRecord(null)
+      setViewMode('list')
+    } else {
+      // Enter add mode
+      setAddMode(true)
       setSelectedRecord({
         id: 0,
         title: '',
@@ -103,14 +116,29 @@ function App() {
         createdAt: '',
         updatedAt: ''
       })
-    } else {
-      setSelectedRecord(null)
+      setViewMode('detail')
     }
   }
 
   const handleSelectRecord = (record: PasswordRecord) => {
     setAddMode(false)
     setSelectedRecord(record)
+    setViewMode('detail')
+  }
+
+  const handleBack = () => {
+    setAddMode(false)
+    setSelectedRecord(null)
+    setViewMode('list')
+  }
+
+  const handleSearchFocus = () => {
+    if (viewMode === 'detail') {
+      setViewMode('list')
+    }
+    setTimeout(() => {
+      passwordListRef.current?.focusSearch()
+    }, 100)
   }
 
   const handleSave = async (record: PasswordRecord) => {
@@ -122,6 +150,7 @@ function App() {
       }
       setAddMode(false)
       setSelectedRecord(null)
+      setViewMode('list')
       loadRecords(searchText)
     } catch (error) {
       console.error('Failed to save record:', error)
@@ -132,15 +161,11 @@ function App() {
     try {
       await invoke('delete_record', { id })
       setSelectedRecord(null)
+      setViewMode('list')
       loadRecords(searchText)
     } catch (error) {
       console.error('Failed to delete record:', error)
     }
-  }
-
-  const handleCancel = () => {
-    setAddMode(false)
-    setSelectedRecord(null)
   }
 
   // Loading state
@@ -160,30 +185,39 @@ function App() {
   // Main app
   return (
     <div className="flex h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      <Sidebar
-        records={records}
-        categories={categories}
-        selectedCategoryId={selectedCategoryId}
-        searchText={searchText}
-        onSearch={handleSearch}
+      {/* Sidebar Toolbar */}
+      <Toolbar
+        onSearchFocus={handleSearchFocus}
         onAddClick={handleAddClick}
         isAddMode={isAddMode}
-        selectedId={selectedRecord?.id}
-        onSelectRecord={handleSelectRecord}
         onHealthCheck={() => setShowHealthCheck(true)}
-        onCategorySelect={setSelectedCategoryId}
-        onManageCategories={() => setShowCategoryManager(true)}
         onDataTransfer={() => setShowDataTransfer(true)}
         onSettings={() => setShowSettings(true)}
       />
+
+      {/* Main Content Area - List or Detail */}
       <main className="flex-1 overflow-hidden">
-        <PasswordDetail
-          record={selectedRecord}
-          categories={categories}
-          onSave={handleSave}
-          onDelete={handleDelete}
-          onCancel={handleCancel}
-        />
+        {viewMode === 'list' ? (
+          <PasswordList
+            ref={passwordListRef}
+            records={records}
+            categories={categories}
+            selectedCategoryId={selectedCategoryId}
+            searchText={searchText}
+            onSearch={handleSearch}
+            onCategorySelect={setSelectedCategoryId}
+            onManageCategories={() => setShowCategoryManager(true)}
+            onSelectRecord={handleSelectRecord}
+          />
+        ) : (
+          <PasswordDetail
+            record={selectedRecord}
+            categories={categories}
+            onSave={handleSave}
+            onDelete={handleDelete}
+            onBack={handleBack}
+          />
+        )}
       </main>
 
       {/* Password Health Check Modal */}

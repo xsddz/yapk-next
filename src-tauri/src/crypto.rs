@@ -107,6 +107,67 @@ impl MasterPassword {
     }
 }
 
+// ============ AES-256-GCM 加密/解密 ============
+
+use aes_gcm::{
+    aead::{Aead, KeyInit},
+    Aes256Gcm, Nonce,
+};
+use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
+
+/// 使用 AES-256-GCM 加密字符串
+/// 返回 Base64 编码的密文 (nonce + ciphertext)
+pub fn encrypt_string(plaintext: &str, key: &[u8; 32]) -> Result<String, String> {
+    if plaintext.is_empty() {
+        return Ok(String::new());
+    }
+
+    let cipher = Aes256Gcm::new_from_slice(key)
+        .map_err(|e| format!("创建加密器失败: {}", e))?;
+    
+    // 生成随机 12 字节 nonce
+    let nonce_bytes: [u8; 12] = rand::thread_rng().gen();
+    let nonce = Nonce::from_slice(&nonce_bytes);
+    
+    let ciphertext = cipher
+        .encrypt(nonce, plaintext.as_bytes())
+        .map_err(|e| format!("加密失败: {}", e))?;
+    
+    // 将 nonce 和密文拼接后 Base64 编码
+    let mut combined = nonce_bytes.to_vec();
+    combined.extend(ciphertext);
+    
+    Ok(BASE64.encode(combined))
+}
+
+/// 使用 AES-256-GCM 解密字符串
+/// 输入为 Base64 编码的密文 (nonce + ciphertext)
+pub fn decrypt_string(ciphertext: &str, key: &[u8; 32]) -> Result<String, String> {
+    if ciphertext.is_empty() {
+        return Ok(String::new());
+    }
+
+    let combined = BASE64.decode(ciphertext)
+        .map_err(|e| format!("Base64 解码失败: {}", e))?;
+    
+    if combined.len() < 12 {
+        return Err("密文格式错误".to_string());
+    }
+    
+    let (nonce_bytes, ciphertext_bytes) = combined.split_at(12);
+    let nonce = Nonce::from_slice(nonce_bytes);
+    
+    let cipher = Aes256Gcm::new_from_slice(key)
+        .map_err(|e| format!("创建解密器失败: {}", e))?;
+    
+    let plaintext = cipher
+        .decrypt(nonce, ciphertext_bytes)
+        .map_err(|e| format!("解密失败: {}", e))?;
+    
+    String::from_utf8(plaintext)
+        .map_err(|e| format!("UTF-8 解码失败: {}", e))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

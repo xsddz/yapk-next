@@ -26,6 +26,7 @@ aes-gcm = "0.10"
 rand = "0.8"
 dirs = "5"
 thiserror = "1"
+base64 = "0.22"
 
 [profile.release]
 panic = "abort"

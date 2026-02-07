@@ -1,0 +1,11 @@
+{
+  "identifier": "default",
+  "description": "Default capabilities for the application",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "clipboard-manager:allow-write",
+    "clipboard-manager:allow-read",
+    "fs:allow-app-read-write"
+  ]
+}

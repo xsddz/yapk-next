@@ -49,7 +49,7 @@ export default function LockScreen({ isFirstTime, onUnlock }: LockScreenProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="w-full max-w-sm p-8">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -63,8 +63,8 @@ export default function LockScreen({ isFirstTime, onUnlock }: LockScreenProps) {
               />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">YAPK Next</h1>
-          <p className="text-gray-400 text-sm">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">YAPK Next</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             {isFirstTime ? '设置主密码以保护您的数据' : '输入主密码解锁应用'}
           </p>
         </div>
@@ -72,14 +72,14 @@ export default function LockScreen({ isFirstTime, onUnlock }: LockScreenProps) {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1.5">
               {isFirstTime ? '设置主密码' : '主密码'}
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+              className="w-full px-4 py-3 bg-white/80 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
               placeholder="••••••••"
               autoFocus
               required
@@ -88,14 +88,14 @@ export default function LockScreen({ isFirstTime, onUnlock }: LockScreenProps) {
 
           {isFirstTime && (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1.5">
                 确认密码
               </label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                className="w-full px-4 py-3 bg-white/80 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                 placeholder="••••••••"
                 required
               />
@@ -111,7 +111,7 @@ export default function LockScreen({ isFirstTime, onUnlock }: LockScreenProps) {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-100 dark:focus:ring-offset-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
@@ -128,7 +128,7 @@ export default function LockScreen({ isFirstTime, onUnlock }: LockScreenProps) {
         </form>
 
         {isFirstTime && (
-          <p className="mt-6 text-xs text-gray-500 text-center">
+          <p className="mt-6 text-xs text-gray-400 dark:text-gray-500 text-center">
             主密码用于加密和保护您的所有密码数据。<br />
             请牢记此密码，忘记将无法恢复数据。
           </p>

@@ -168,6 +168,108 @@ pub fn decrypt_string(ciphertext: &str, key: &[u8; 32]) -> Result<String, String
         .map_err(|e| format!("UTF-8 解码失败: {}", e))
 }
 
+// ============ 密码生成器 ============
+
+use serde::{Deserialize, Serialize};
+
+/// 密码生成选项
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PasswordGeneratorOptions {
+    /// 密码长度
+    pub length: usize,
+    /// 包含大写字母
+    pub uppercase: bool,
+    /// 包含小写字母
+    pub lowercase: bool,
+    /// 包含数字
+    pub numbers: bool,
+    /// 包含特殊符号
+    pub symbols: bool,
+    /// 排除易混淆字符 (0, O, l, 1, I 等)
+    pub exclude_ambiguous: bool,
+}
+
+impl Default for PasswordGeneratorOptions {
+    fn default() -> Self {
+        Self {
+            length: 16,
+            uppercase: true,
+            lowercase: true,
+            numbers: true,
+            symbols: true,
+            exclude_ambiguous: true,
+        }
+    }
+}
+
+/// 生成随机密码
+pub fn generate_password(options: &PasswordGeneratorOptions) -> Result<String, String> {
+    if options.length == 0 {
+        return Err("密码长度必须大于 0".to_string());
+    }
+    
+    if options.length > 128 {
+        return Err("密码长度不能超过 128".to_string());
+    }
+
+    let mut charset = String::new();
+    
+    // 定义字符集
+    let uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let lowercase = "abcdefghijklmnopqrstuvwxyz";
+    let numbers = "0123456789";
+    let symbols = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+    
+    // 易混淆字符
+    let ambiguous = "0OlI1";
+
+    if options.uppercase {
+        charset.push_str(uppercase);
+    }
+    if options.lowercase {
+        charset.push_str(lowercase);
+    }
+    if options.numbers {
+        charset.push_str(numbers);
+    }
+    if options.symbols {
+        charset.push_str(symbols);
+    }
+
+    // 排除易混淆字符
+    if options.exclude_ambiguous {
+        charset = charset.chars().filter(|c| !ambiguous.contains(*c)).collect();
+    }
+
+    if charset.is_empty() {
+        return Err("至少选择一种字符类型".to_string());
+    }
+
+    let charset: Vec<char> = charset.chars().collect();
+    let mut rng = rand::thread_rng();
+    
+    let password: String = (0..options.length)
+        .map(|_| {
+            let idx = rng.gen_range(0..charset.len());
+            charset[idx]
+        })
+        .collect();
+
+    // 确保密码包含所有选中的字符类型
+    let has_upper = !options.uppercase || password.chars().any(|c| c.is_ascii_uppercase());
+    let has_lower = !options.lowercase || password.chars().any(|c| c.is_ascii_lowercase());
+    let has_number = !options.numbers || password.chars().any(|c| c.is_ascii_digit());
+    let has_symbol = !options.symbols || password.chars().any(|c| symbols.contains(c));
+
+    // 如果缺少某类字符，递归重新生成
+    if !has_upper || !has_lower || !has_number || !has_symbol {
+        return generate_password(options);
+    }
+
+    Ok(password)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

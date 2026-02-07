@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
+import PasswordGenerator from './PasswordGenerator'
 import type { PasswordRecord } from '../types'
 
 interface PasswordDetailProps {
@@ -18,6 +19,7 @@ export default function PasswordDetail({
   const [formData, setFormData] = useState<PasswordRecord | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null)
+  const [showGenerator, setShowGenerator] = useState(false)
 
   useEffect(() => {
     setFormData(record)
@@ -148,10 +150,21 @@ export default function PasswordDetail({
               type={showPassword ? 'text' : 'password'}
               value={formData.loginPass}
               onChange={(e) => handleChange('loginPass', e.target.value)}
-              className="w-full px-3 py-2 pr-20 bg-gray-800 border border-gray-600 rounded-lg text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className="w-full px-3 py-2 pr-28 bg-gray-800 border border-gray-600 rounded-lg text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               placeholder="密码"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+              {/* 密码生成器按钮 */}
+              <button
+                type="button"
+                onClick={() => setShowGenerator(true)}
+                className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors"
+                title="生成密码"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -229,6 +242,14 @@ export default function PasswordDetail({
           )}
         </div>
       </form>
+
+      {/* 密码生成器弹窗 */}
+      {showGenerator && (
+        <PasswordGenerator
+          onSelect={(password) => handleChange('loginPass', password)}
+          onClose={() => setShowGenerator(false)}
+        />
+      )}
     </div>
   )
 }

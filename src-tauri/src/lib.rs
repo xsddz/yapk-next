@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use std::sync::{OnceLock, RwLock};
 use tauri::Manager;
 
-use crypto::{MasterPassword, encrypt_string, decrypt_string};
+use crypto::{MasterPassword, encrypt_string, decrypt_string, generate_password, PasswordGeneratorOptions};
 use db::Database;
 use models::PasswordRecord;
 
@@ -191,6 +191,14 @@ fn lock_app() -> Result<(), String> {
     clear_encryption_key()
 }
 
+// ============ 密码生成器 ============
+
+/// 生成随机密码
+#[tauri::command]
+fn generate_random_password(options: PasswordGeneratorOptions) -> Result<String, String> {
+    generate_password(&options)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -218,6 +226,7 @@ pub fn run() {
             verify_master_password,
             change_master_password,
             lock_app,
+            generate_random_password,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

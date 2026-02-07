@@ -86,16 +86,16 @@ export function PasswordHealth({ records, onClose, onSelectRecord }: PasswordHea
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[80vh] flex flex-col shadow-2xl">
+      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[80vh] flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <span className="text-2xl">🏥</span>
             密码健康检查
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors text-xl"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-xl"
           >
             ✕
           </button>
@@ -106,7 +106,7 @@ export function PasswordHealth({ records, onClose, onSelectRecord }: PasswordHea
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin text-4xl">⏳</div>
-              <span className="ml-3 text-gray-400">正在分析密码安全性...</span>
+              <span className="ml-3 text-gray-500 dark:text-gray-400">正在分析密码安全性...</span>
             </div>
           ) : error ? (
             <div className="text-center py-12">
@@ -122,23 +122,23 @@ export function PasswordHealth({ records, onClose, onSelectRecord }: PasswordHea
             <div className="space-y-4">
               {/* Summary Cards */}
               <div className="grid grid-cols-4 gap-3">
-                <div className="bg-gray-700/50 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-bold text-white">{report.totalCount}</div>
-                  <div className="text-xs text-gray-400">总密码数</div>
+                <div className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{report.totalCount}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">总密码数</div>
                 </div>
                 <div className={`rounded-lg p-3 text-center ${healthScore >= 70 ? 'bg-green-500/20' : healthScore >= 50 ? 'bg-yellow-500/20' : 'bg-red-500/20'}`}>
                   <div className={`text-2xl font-bold ${healthScore >= 70 ? 'text-green-400' : healthScore >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
                     {healthScore}
                   </div>
-                  <div className="text-xs text-gray-400">健康分数</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">健康分数</div>
                 </div>
                 <div className="bg-red-500/20 rounded-lg p-3 text-center">
                   <div className="text-2xl font-bold text-red-400">{report.weakCount}</div>
-                  <div className="text-xs text-gray-400">弱密码</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">弱密码</div>
                 </div>
                 <div className="bg-yellow-500/20 rounded-lg p-3 text-center">
                   <div className="text-2xl font-bold text-yellow-400">{report.reusedCount}</div>
-                  <div className="text-xs text-gray-400">重复使用</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">重复使用</div>
                 </div>
               </div>
 
@@ -147,7 +147,7 @@ export function PasswordHealth({ records, onClose, onSelectRecord }: PasswordHea
                 <button
                   onClick={() => setFilter('all')}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                 >
                   全部 ({report.results.length})
@@ -155,7 +155,7 @@ export function PasswordHealth({ records, onClose, onSelectRecord }: PasswordHea
                 <button
                   onClick={() => setFilter('weak')}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    filter === 'weak' ? 'bg-red-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    filter === 'weak' ? 'bg-red-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                 >
                   ⚠️ 弱密码 ({report.weakCount})
@@ -163,7 +163,7 @@ export function PasswordHealth({ records, onClose, onSelectRecord }: PasswordHea
                 <button
                   onClick={() => setFilter('reused')}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    filter === 'reused' ? 'bg-yellow-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    filter === 'reused' ? 'bg-yellow-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                 >
                   🔁 重复 ({report.reusedCount})
@@ -173,14 +173,14 @@ export function PasswordHealth({ records, onClose, onSelectRecord }: PasswordHea
               {/* Results List */}
               <div className="space-y-2">
                 {filteredResults.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400">
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     {filter === 'all' ? '没有密码记录' : '没有符合条件的记录 🎉'}
                   </div>
                 ) : (
                   filteredResults.map(result => (
                     <div
                       key={result.recordId}
-                      className="bg-gray-700/50 rounded-lg p-3 hover:bg-gray-700/70 transition-colors cursor-pointer"
+                      className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-3 hover:bg-gray-200 dark:hover:bg-gray-700/70 transition-colors cursor-pointer"
                       onClick={() => onSelectRecord?.(result.recordId)}
                     >
                       <div className="flex items-center justify-between">
@@ -188,13 +188,13 @@ export function PasswordHealth({ records, onClose, onSelectRecord }: PasswordHea
                           <span className={`px-2 py-0.5 rounded text-xs font-medium ${strengthColors[result.strength]}`}>
                             {strengthLabels[result.strength]}
                           </span>
-                          <span className="text-white font-medium">
+                          <span className="text-gray-900 dark:text-white font-medium">
                             {getRecordName(result.recordId)}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-400">{result.score}分</span>
-                          <div className="w-24 h-2 bg-gray-600 rounded-full overflow-hidden">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">{result.score}分</span>
+                          <div className="w-24 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                             <div
                               className={`h-full transition-all ${
                                 result.score >= 80 ? 'bg-green-500' :
@@ -211,7 +211,7 @@ export function PasswordHealth({ records, onClose, onSelectRecord }: PasswordHea
                           {result.issues.map((issue, idx) => (
                             <span
                               key={idx}
-                              className="text-xs text-gray-400 bg-gray-600/50 px-2 py-1 rounded"
+                              className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600/50 px-2 py-1 rounded"
                             >
                               {issueTypeIcons[issue.issueType] || '❓'} {issue.message}
                             </span>
@@ -227,10 +227,10 @@ export function PasswordHealth({ records, onClose, onSelectRecord }: PasswordHea
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-700">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
+            className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             关闭
           </button>

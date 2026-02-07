@@ -108,16 +108,16 @@ export function CategoryManager({ onClose, onCategoriesChange }: CategoryManager
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-xl max-w-lg w-full max-h-[80vh] flex flex-col shadow-2xl">
+      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full max-h-[80vh] flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <span className="text-2xl">🏷️</span>
             分类管理
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors text-xl"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-xl"
           >
             ✕
           </button>
@@ -140,21 +140,21 @@ export function CategoryManager({ onClose, onCategoriesChange }: CategoryManager
 
               {/* Edit/New form */}
               {editMode !== null && (
-                <div className="bg-gray-700/50 rounded-lg p-4 space-y-4">
+                <div className="bg-gray-100 dark:bg-gray-700/50 rounded-lg p-4 space-y-4">
                   <div>
-                    <label className="block text-sm text-gray-400 mb-1">分类名称</label>
+                    <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">分类名称</label>
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       placeholder="例如：社交媒体"
                       autoFocus
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">图标</label>
+                    <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">图标</label>
                     <div className="flex flex-wrap gap-2">
                       {ICONS.map((icon) => (
                         <button
@@ -163,7 +163,7 @@ export function CategoryManager({ onClose, onCategoriesChange }: CategoryManager
                           className={`w-10 h-10 text-xl rounded-lg transition-colors ${
                             formData.icon === icon
                               ? 'bg-blue-600 ring-2 ring-blue-400'
-                              : 'bg-gray-600 hover:bg-gray-500'
+                              : 'bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500'
                           }`}
                         >
                           {icon}
@@ -173,7 +173,7 @@ export function CategoryManager({ onClose, onCategoriesChange }: CategoryManager
                   </div>
 
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">颜色</label>
+                    <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">颜色</label>
                     <div className="flex flex-wrap gap-2">
                       {COLORS.map((color) => (
                         <button
@@ -197,7 +197,7 @@ export function CategoryManager({ onClose, onCategoriesChange }: CategoryManager
                     </button>
                     <button
                       onClick={cancelEdit}
-                      className="flex-1 px-4 py-2 bg-gray-600 text-gray-300 rounded-lg hover:bg-gray-500 transition-colors"
+                      className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
                     >
                       取消
                     </button>
@@ -210,14 +210,14 @@ export function CategoryManager({ onClose, onCategoriesChange }: CategoryManager
                 <>
                   <button
                     onClick={startNew}
-                    className="w-full px-4 py-3 border-2 border-dashed border-gray-600 rounded-lg text-gray-400 hover:border-blue-500 hover:text-blue-400 transition-colors flex items-center justify-center gap-2"
+                    className="w-full px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:border-blue-500 hover:text-blue-400 transition-colors flex items-center justify-center gap-2"
                   >
                     <span className="text-xl">+</span>
                     添加新分类
                   </button>
 
                   {categories.length === 0 ? (
-                    <div className="text-center py-8 text-gray-400">
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                       暂无分类，点击上方按钮创建
                     </div>
                   ) : (
@@ -225,7 +225,7 @@ export function CategoryManager({ onClose, onCategoriesChange }: CategoryManager
                       {categories.map((category) => (
                         <div
                           key={category.id}
-                          className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg hover:bg-gray-700/70 transition-colors"
+                          className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-700/50 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700/70 transition-colors"
                         >
                           <div className="flex items-center gap-3">
                             <span
@@ -234,19 +234,19 @@ export function CategoryManager({ onClose, onCategoriesChange }: CategoryManager
                             >
                               {category.icon}
                             </span>
-                            <span className="font-medium text-white">{category.name}</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{category.name}</span>
                           </div>
                           <div className="flex gap-2">
                             <button
                               onClick={() => startEdit(category)}
-                              className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
+                              className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-400 transition-colors"
                               title="编辑"
                             >
                               ✏️
                             </button>
                             <button
                               onClick={() => handleDelete(category.id)}
-                              className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+                              className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-400 transition-colors"
                               title="删除"
                             >
                               🗑️
@@ -263,10 +263,10 @@ export function CategoryManager({ onClose, onCategoriesChange }: CategoryManager
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-700">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
+            className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             关闭
           </button>

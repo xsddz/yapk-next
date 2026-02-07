@@ -64,13 +64,13 @@ export default function PasswordGenerator({ onSelect, onClose }: PasswordGenerat
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-100">密码生成器</h3>
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">密码生成器</h3>
           <button
             onClick={onClose}
-            className="p-1 text-gray-400 hover:text-gray-200 transition-colors"
+            className="p-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -81,14 +81,14 @@ export default function PasswordGenerator({ onSelect, onClose }: PasswordGenerat
         {/* Content */}
         <div className="p-4 space-y-4">
           {/* Generated Password */}
-          <div className="bg-gray-900 rounded-lg p-3">
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 value={password}
                 readOnly
                 placeholder="点击生成按钮生成密码"
-                className="flex-1 bg-transparent text-gray-100 font-mono text-lg outline-none"
+                className="flex-1 bg-transparent text-gray-900 dark:text-gray-100 font-mono text-lg outline-none"
               />
               <button
                 onClick={generatePassword}
@@ -109,7 +109,7 @@ export default function PasswordGenerator({ onSelect, onClose }: PasswordGenerat
             {password && (
               <div className="mt-2 flex items-center gap-2">
                 <span className={`text-xs ${strength.color}`}>强度: {strength.label}</span>
-                <div className="flex-1 h-1 bg-gray-700 rounded-full overflow-hidden">
+                <div className="flex-1 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                   <div 
                     className={`h-full ${strength.bg} transition-all`}
                     style={{ width: strength.label === '非常强' ? '100%' : strength.label === '强' ? '75%' : strength.label === '中等' ? '50%' : '25%' }}
@@ -122,7 +122,7 @@ export default function PasswordGenerator({ onSelect, onClose }: PasswordGenerat
           {/* Length Slider */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm text-gray-300">密码长度</label>
+              <label className="text-sm text-gray-600 dark:text-gray-300">密码长度</label>
               <span className="text-sm font-medium text-blue-400">{options.length}</span>
             </div>
             <input
@@ -131,13 +131,13 @@ export default function PasswordGenerator({ onSelect, onClose }: PasswordGenerat
               max={64}
               value={options.length}
               onChange={(e) => handleOptionChange('length', parseInt(e.target.value))}
-              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+              className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
             />
           </div>
 
           {/* Character Options */}
           <div className="space-y-2">
-            <label className="text-sm text-gray-300">包含字符</label>
+            <label className="text-sm text-gray-600 dark:text-gray-300">包含字符</label>
             <div className="grid grid-cols-2 gap-2">
               {[
                 { key: 'uppercase', label: '大写字母 (A-Z)' },
@@ -150,7 +150,7 @@ export default function PasswordGenerator({ onSelect, onClose }: PasswordGenerat
                   className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
                     options[key as keyof PasswordGeneratorOptions]
                       ? 'bg-blue-600/20 border border-blue-500/50'
-                      : 'bg-gray-700/50 border border-gray-600'
+                      : 'bg-gray-100 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600'
                   }`}
                 >
                   <input
@@ -160,7 +160,7 @@ export default function PasswordGenerator({ onSelect, onClose }: PasswordGenerat
                     className="sr-only"
                   />
                   <span className={`w-4 h-4 rounded flex items-center justify-center ${
-                    options[key as keyof PasswordGeneratorOptions] ? 'bg-blue-500' : 'bg-gray-600'
+                    options[key as keyof PasswordGeneratorOptions] ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
                   }`}>
                     {options[key as keyof PasswordGeneratorOptions] && (
                       <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,14 +168,14 @@ export default function PasswordGenerator({ onSelect, onClose }: PasswordGenerat
                       </svg>
                     )}
                   </span>
-                  <span className="text-sm text-gray-300">{label}</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-300">{label}</span>
                 </label>
               ))}
             </div>
           </div>
 
           {/* Exclude Ambiguous */}
-          <label className="flex items-center gap-3 p-2 rounded-lg bg-gray-700/30 cursor-pointer">
+          <label className="flex items-center gap-3 p-2 rounded-lg bg-gray-100/50 dark:bg-gray-700/30 cursor-pointer">
             <input
               type="checkbox"
               checked={options.excludeAmbiguous}
@@ -183,7 +183,7 @@ export default function PasswordGenerator({ onSelect, onClose }: PasswordGenerat
               className="sr-only"
             />
             <span className={`w-4 h-4 rounded flex items-center justify-center ${
-              options.excludeAmbiguous ? 'bg-blue-500' : 'bg-gray-600'
+              options.excludeAmbiguous ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
             }`}>
               {options.excludeAmbiguous && (
                 <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,18 +192,18 @@ export default function PasswordGenerator({ onSelect, onClose }: PasswordGenerat
               )}
             </span>
             <div>
-              <span className="text-sm text-gray-300">排除易混淆字符</span>
+              <span className="text-sm text-gray-600 dark:text-gray-300">排除易混淆字符</span>
               <span className="text-xs text-gray-500 block">如 0, O, l, 1, I</span>
             </div>
           </label>
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 p-4 border-t border-gray-700">
+        <div className="flex gap-3 p-4 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={generatePassword}
             disabled={isGenerating}
-            className="flex-1 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors font-medium"
+            className="flex-1 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
           >
             生成密码
           </button>

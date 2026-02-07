@@ -11,7 +11,7 @@ use crypto::{
     check_password_strength, find_reused_passwords, HealthReport, PasswordHealthResult, PasswordIssue,
 };
 use db::Database;
-use models::{PasswordRecord, Category};
+use models::{PasswordRecord, Category, ExportData, ExportCategory, ExportRecord};
 
 /// Global database instance
 static DATABASE: OnceLock<Database> = OnceLock::new();
@@ -317,10 +317,186 @@ fn list_records_by_category(category_id: Option<i64>) -> Result<Vec<PasswordReco
         .collect()
 }
 
+// ============ 数据导入导出 ============
+
+/// 导出数据为 JSON
+#[tauri::command]
+fn export_data(encrypted: bool) -> Result<String, String> {
+    let key = get_encryption_key()?;
+    let db = get_db();
+    
+    // 获取所有分类
+    let categories = db.list_categories().map_err(|e| e.to_string())?;
+    let category_map: std::collections::HashMap<i64, String> = categories
+        .iter()
+        .map(|c| (c.id, c.name.clone()))
+        .collect();
+    
+    // 获取所有记录并解密
+    let records = db.list_records("").map_err(|e| e.to_string())?;
+    
+    // 构建导出数据
+    let export_categories: Vec<ExportCategory> = categories
+        .into_iter()
+        .map(|c| ExportCategory {
+            name: c.name,
+            icon: c.icon,
+            color: c.color,
+        })
+        .collect();
+    
+    let export_records: Vec<ExportRecord> = records
+        .into_iter()
+        .map(|r| {
+            // 解密密码
+            let decrypted_pass = decrypt_string(&r.login_pass, &key).unwrap_or_default();
+            let final_pass = if encrypted {
+                // 导出时重新加密（使用相同密钥，但每次 nonce 不同）
+                encrypt_string(&decrypted_pass, &key).unwrap_or_default()
+            } else {
+                decrypted_pass
+            };
+            
+            ExportRecord {
+                title: r.title,
+                site_or_app: r.site_or_app,
+                login_name: r.login_name,
+                login_pass: final_pass,
+                remarks: r.remarks,
+                category_name: r.category_id.and_then(|id| category_map.get(&id).cloned()),
+                created_at: r.created_at,
+                updated_at: r.updated_at,
+            }
+        })
+        .collect();
+    
+    let export_data = ExportData {
+        version: "1.0".to_string(),
+        exported_at: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+        encrypted,
+        categories: export_categories,
+        records: export_records,
+    };
+    
+    serde_json::to_string_pretty(&export_data)
+        .map_err(|e| format!("序列化失败: {}", e))
+}
+
+/// 导入数据
+#[tauri::command]
+fn import_data(json_data: String, merge: bool) -> Result<ImportResult, String> {
+    let key = get_encryption_key()?;
+    let db = get_db();
+    
+    // 解析导入数据
+    let import_data: ExportData = serde_json::from_str(&json_data)
+        .map_err(|e| format!("JSON 解析失败: {}", e))?;
+    
+    let mut imported_categories = 0;
+    let mut imported_records = 0;
+    let mut skipped_records = 0;
+    
+    // 如果不是合并模式，先清空现有数据
+    if !merge {
+        // 删除所有记录
+        let existing_records = db.list_records("").map_err(|e| e.to_string())?;
+        for record in existing_records {
+            db.delete_record(record.id).map_err(|e| e.to_string())?;
+        }
+        // 删除所有分类
+        let existing_categories = db.list_categories().map_err(|e| e.to_string())?;
+        for cat in existing_categories {
+            db.delete_category(cat.id).map_err(|e| e.to_string())?;
+        }
+    }
+    
+    // 导入分类
+    let mut category_name_to_id: std::collections::HashMap<String, i64> = std::collections::HashMap::new();
+    
+    // 先加载已有分类
+    let existing_categories = db.list_categories().map_err(|e| e.to_string())?;
+    for cat in existing_categories {
+        category_name_to_id.insert(cat.name.clone(), cat.id);
+    }
+    
+    // 导入新分类
+    for cat in import_data.categories {
+        if !category_name_to_id.contains_key(&cat.name) {
+            let id = db.add_category(&cat.name, &cat.icon, &cat.color)
+                .map_err(|e| e.to_string())?;
+            category_name_to_id.insert(cat.name, id);
+            imported_categories += 1;
+        }
+    }
+    
+    // 获取现有记录标题（用于合并模式去重）
+    let existing_titles: std::collections::HashSet<String> = if merge {
+        db.list_records("")
+            .map_err(|e| e.to_string())?
+            .into_iter()
+            .map(|r| r.title)
+            .collect()
+    } else {
+        std::collections::HashSet::new()
+    };
+    
+    // 导入记录
+    for record in import_data.records {
+        // 合并模式下跳过同名记录
+        if merge && existing_titles.contains(&record.title) {
+            skipped_records += 1;
+            continue;
+        }
+        
+        // 处理密码
+        let password = if import_data.encrypted {
+            // 数据是加密的，直接存储（假设使用相同密钥）
+            record.login_pass
+        } else {
+            // 数据未加密，需要加密后存储
+            encrypt_string(&record.login_pass, &key)?
+        };
+        
+        let category_id = record.category_name
+            .and_then(|name| category_name_to_id.get(&name).copied());
+        
+        let new_record = PasswordRecord {
+            id: 0,
+            title: record.title,
+            site_or_app: record.site_or_app,
+            login_name: record.login_name,
+            login_pass: password,
+            remarks: record.remarks,
+            category_id,
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+        };
+        
+        db.add_record(&new_record).map_err(|e| e.to_string())?;
+        imported_records += 1;
+    }
+    
+    Ok(ImportResult {
+        imported_categories,
+        imported_records,
+        skipped_records,
+    })
+}
+
+/// 导入结果
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportResult {
+    pub imported_categories: i32,
+    pub imported_records: i32,
+    pub skipped_records: i32,
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .setup(|app| {
             // Get app data directory
@@ -352,6 +528,8 @@ pub fn run() {
             delete_category,
             get_category_counts,
             list_records_by_category,
+            export_data,
+            import_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

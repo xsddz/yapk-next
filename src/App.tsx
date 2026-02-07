@@ -5,6 +5,7 @@ import PasswordDetail from './components/PasswordDetail'
 import LockScreen from './components/LockScreen'
 import { PasswordHealth } from './components/PasswordHealth'
 import { CategoryManager } from './components/CategoryManager'
+import { DataTransfer } from './components/DataTransfer'
 import { usePasswordStore } from './stores/passwordStore'
 import type { PasswordRecord, Category } from './types'
 
@@ -26,6 +27,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true)
   const [showHealthCheck, setShowHealthCheck] = useState(false)
   const [showCategoryManager, setShowCategoryManager] = useState(false)
+  const [showDataTransfer, setShowDataTransfer] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null | 'all'>('all')
 
@@ -161,6 +163,7 @@ function App() {
         onHealthCheck={() => setShowHealthCheck(true)}
         onCategorySelect={setSelectedCategoryId}
         onManageCategories={() => setShowCategoryManager(true)}
+        onDataTransfer={() => setShowDataTransfer(true)}
       />
       <main className="flex-1 overflow-hidden">
         <PasswordDetail
@@ -191,6 +194,16 @@ function App() {
         <CategoryManager
           onClose={() => setShowCategoryManager(false)}
           onCategoriesChange={loadCategories}
+        />
+      )}
+      {/* Data Transfer Modal */}
+      {showDataTransfer && (
+        <DataTransfer
+          onClose={() => setShowDataTransfer(false)}
+          onDataChange={() => {
+            loadRecords(searchText)
+            loadCategories()
+          }}
         />
       )}
     </div>
